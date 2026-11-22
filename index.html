@@ -17,15 +17,15 @@ footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}f
 .sh{background:#1a1d24;width:100%;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px 24px;box-sizing:border-box}
 .sh input{width:100%;box-sizing:border-box;background:#0e1013;color:#f2f3f5;border:1px solid #2a2f39;border-radius:10px;padding:10px;margin:6px 0;font-size:14px}
 .ln{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2a2f39;font-size:13px;gap:8px}.sh .go{width:100%;margin-top:10px}.sh .x{background:#252a33;color:#f2f3f5;border:0;border-radius:10px;padding:10px;width:100%;margin-top:8px}
-.hint{color:#8e95a3;font-size:12px;margin-top:8px}
+.hint{color:#8e95a3;font-size:12px;margin-top:8px}.wa{display:inline-block;margin-top:8px;background:#25d366;color:#000;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none}
 </style></head><body><header><h1 id="t">Loading...</h1><div class="sub" id="s"></div><div class="note" id="nt" style="display:none"></div></header>
-<div class="bar"><input id="q" placeholder="Search code or name" oninput="f()"><select id="st" onchange="f()"><option value="">All sets</option></select></div>
+<div id="refs" class="note" style="display:none;margin:0 16px"></div><div class="bar"><input id="q" placeholder="Search code or name" oninput="f()"><select id="st" onchange="f()"><option value="">All sets</option></select></div>
 <div id="msg"></div><div class="grid" id="g"></div><footer id="ft"></footer>
 <div id="cb"><span id="ct"></span><button onclick="openOrder()">Review order</button></div>
 <div class="ov" id="ov"><div class="sh"><h2 style="margin:0 0 8px">Your order</h2><div id="ol"></div><div id="otot" style="margin:10px 0;font-weight:600"></div>
 <input id="bn" placeholder="Your name"><input id="bnote" placeholder="Note (optional)">
-<button class="go" onclick="sendOrder()">Send order via WhatsApp</button><button class="x" onclick="closeOrder()">Back</button>
-<div class="hint">This opens WhatsApp with your order ready to send. The seller replies to confirm. No payment is taken here.</div></div></div>
+<div id="res" class="hint" style="color:#f2f3f5;font-size:14px;margin-top:10px"></div><button class="go" id="gobtn" onclick="sendOrder()">Place order</button><button class="x" onclick="closeOrder()">Back</button>
+<div class="hint">Your order goes to the seller for approval. No payment is taken here; the seller will contact you.</div></div></div>
 <script>
 var D=null,CART={};
 var REPO="norindamsyar/optcgbn-share";
@@ -42,15 +42,36 @@ function lines(){var o=[];for(var k in CART){var c=D.cards[k];o.push({c:c,q:CART
 function openOrder(){var h="";lines().forEach(function(l){h+='<div class="ln"><span>'+esc(l.c.c)+" "+esc(l.c.r)+" "+esc(l.c.e||l.c.n)+" x"+l.q+'</span><span>'+(D.rate&&l.c.p?money(l.c.p*l.q):"")+'</span></div>'});
   document.getElementById("ol").innerHTML=h;var x=tot();document.getElementById("otot").textContent=D.rate?"Total (reference): "+money(x.t):x.n+" cards";
   document.getElementById("bn").value=localStorage.getItem("bn")||"";document.getElementById("ov").classList.add("on")}
-function closeOrder(){document.getElementById("ov").classList.remove("on")}
-function sendOrder(){var nm=document.getElementById("bn").value.trim();if(!nm){alert("Please enter your name");return}
-  localStorage.setItem("bn",nm);var id="O"+Date.now().toString(36).toUpperCase().slice(-5),x=tot();
+function closeOrder(){document.getElementById("ov").classList.remove("on");document.getElementById("res").textContent="";var g=document.querySelector(".sh .go");if(g)g.style.display=""}
+var API="https://optcgbn-orders.optcgbn.workers.dev";
+function waText(id,nm,note,saved){var x=tot();
   var m="*New order "+id+"* - "+(D.name||"OPTCG.BN")+"\nFrom: "+nm+"\n\n";
   lines().forEach(function(l){m+="- "+l.c.c+" "+l.c.r+" "+(l.c.e||l.c.n)+" x"+l.q+(D.rate&&l.c.p?" ("+money(l.c.p*l.q)+")":"")+"\n"});
   m+="\n"+x.n+" cards"+(D.rate?", total "+money(x.t)+" (reference)":"")+"\n";
-  var nt=document.getElementById("bnote").value.trim();if(nt)m+="Note: "+nt+"\n";
-  m+="\nPlease confirm availability and payment.";
-  window.open("https://wa.me/"+String(D.wa).replace(/\D/g,"")+"?text="+encodeURIComponent(m),"_blank")}
+  if(note)m+="Note: "+note+"\n";
+  m+=saved?"\nPlease review and approve in the app.":"\nPlease confirm availability and payment.";
+  return "https://wa.me/"+String(D.wa).replace(/\D/g,"")+"?text="+encodeURIComponent(m)}
+function sendOrder(){var nm=document.getElementById("bn").value.trim();if(!nm){alert("Please enter your name");return}
+  localStorage.setItem("bn",nm);var note=document.getElementById("bnote").value.trim(),res=document.getElementById("res"),go=document.getElementById("gobtn");
+  var items=lines().map(function(l){return{id:l.c.id,q:l.q}});
+  var ok=items.every(function(i){return i.id});
+  function fallback(msg){res.innerHTML=esc(msg)+'<br><a class="wa" target="_blank" href="'+waText("O"+Date.now().toString(36).toUpperCase().slice(-5),nm,note,false)+'">Send on WhatsApp instead</a>'}
+  if(!ok){fallback("Direct ordering is not available right now.");return}
+  go.disabled=true;res.textContent="Sending...";
+  fetch(API+"/order",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:nm,note:note,items:items})})
+   .then(function(r){return r.json().then(function(j){return{s:r.status,j:j}})})
+   .then(function(o){go.disabled=false;
+     if(o.s===200){var wl=waText(o.j.id,nm,note,true);var refs=JSON.parse(localStorage.getItem("refs")||"[]");refs.unshift(o.j.id);localStorage.setItem("refs",JSON.stringify(refs.slice(0,10)));
+       CART={};document.querySelectorAll(".ad").forEach(function(b){b.style.display=""});document.querySelectorAll(".st").forEach(function(b){if(b.id!=="st")b.style.display="none"});upd();
+       res.innerHTML='<b>Order placed. Ref '+esc(o.j.id)+'</b><br>The seller will review it. Tap below to also notify them on WhatsApp.<br><a class="wa" target="_blank" href="'+wl+'">Notify on WhatsApp</a>';
+       document.querySelector(".sh .go").style.display="none";showRefs()}
+     else if(o.s===409||o.s===400||o.s===429)res.textContent=(o.j&&o.j.error)||"Could not place the order.";
+     else fallback("Could not reach the seller's order system.")})
+   .catch(function(){go.disabled=false;fallback("Could not reach the seller's order system.")})}
+function showRefs(){var refs=JSON.parse(localStorage.getItem("refs")||"[]"),el=document.getElementById("refs");if(!refs.length){el.style.display="none";return}
+  el.style.display="block";el.textContent="Checking your orders...";
+  Promise.all(refs.slice(0,3).map(function(id){return fetch(API+"/status/"+id).then(function(r){return r.ok?r.json():{id:id,status:"expired"}}).catch(function(){return{id:id,status:"unknown"}})}))
+   .then(function(a){el.innerHTML=a.map(function(o){return"Order "+esc(o.id)+": <b>"+esc(o.status)+"</b>"}).join("<br>")})}
 function load(){
   return fetch("https://api.github.com/repos/"+REPO+"/contents/inventory.json",{headers:{"Accept":"application/vnd.github.raw"}})
    .then(function(r){if(!r.ok)throw 0;return r.json()})
@@ -77,6 +98,7 @@ function render(d){
   document.getElementById("g").innerHTML=h;
   document.getElementById("msg").style.display=cards.length?"none":"";
   if(!cards.length)document.getElementById("msg").textContent="No cards published yet.";
+  showRefs();
   document.getElementById("ft").textContent=(d.rate?"Prices are Yuyutei shop selling prices converted to BND, for reference only. ":"")+"Made with OPTCG.BN";
 }
 function f(){var q=document.getElementById("q").value.toLowerCase(),s=document.getElementById("st").value;
