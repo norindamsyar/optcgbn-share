@@ -23,7 +23,7 @@ footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}f
 <div id="msg"></div><div class="grid" id="g"></div><footer id="ft"></footer>
 <div id="cb"><span id="ct"></span><button onclick="openOrder()">View my cart</button></div>
 <div class="ov" id="ov"><div class="sh"><h2 style="margin:0 0 8px">My cart</h2><div id="ol"></div><div id="otot" style="margin:10px 0;font-weight:600"></div>
-<input id="bn" placeholder="Your name (required)"><input id="bp" type="tel" inputmode="tel" placeholder="Your WhatsApp number (required) e.g. 6738123456"><input id="bnote" placeholder="Note (optional)">
+<div id="req" class="hint" style="color:#e8b84a;font-size:13px;margin:6px 0 2px"></div><input id="bn" placeholder="Your name (required)"><input id="bp" type="tel" inputmode="tel" placeholder="Your WhatsApp number (required) e.g. 6738123456"><input id="bnote" placeholder="Note (optional)">
 <div id="res" class="hint" style="color:#f2f3f5;font-size:14px;margin-top:10px"></div><button class="go" id="gobtn" onclick="sendOrder()">Place order</button><button class="x" onclick="closeOrder()">Keep shopping</button>
 <div class="hint">Your order goes to the seller for approval. No payment is taken here; the seller will contact you on WhatsApp. Your name and number cannot be changed after your first order.</div></div></div>
 <div class="ov" id="ov2"><div class="sh" id="od"></div></div>
@@ -41,7 +41,7 @@ function upd(){var x=tot(),b=document.getElementById("cb");b.style.display=x.n?"
   document.getElementById("ct").textContent=x.n+" card"+(x.n>1?"s":"")+(D.rate?" \u00b7 "+money(x.t):"")}
 function lines(){var o=[];for(var k in CART){o.push({c:D.cards[k],q:CART[k]})}return o}
 function cl(k,d){chg(k,d);if(!tot().n){closeOrder()}else openOrder()}
-function lockd(){var l=localStorage.getItem("locked")==="1";document.getElementById("bn").readOnly=l;document.getElementById("bp").readOnly=l;["bn","bp"].forEach(function(i){document.getElementById(i).style.opacity=l?".7":"1"})}
+function lockd(){var l=localStorage.getItem("locked")==="1";document.getElementById("req").innerHTML=l?"Ordering as <b>"+esc(localStorage.getItem("bn")||"")+"</b> (+"+esc(localStorage.getItem("bp")||"")+"). Your name and WhatsApp number are saved from your first order and cannot be changed.":"<b>Required:</b> enter your name and WhatsApp number (with country code, e.g. 6738123456) before placing an order. The seller uses them to contact you. They cannot be changed after your first order, so please check them.";document.getElementById("bn").readOnly=l;document.getElementById("bp").readOnly=l;["bn","bp"].forEach(function(i){document.getElementById(i).style.opacity=l?".7":"1"})}
 function openOrder(){var h="";for(var k in CART){var c=D.cards[k],q=CART[k];
     h+='<div class="ln"><span style="flex:1">'+esc(c.c)+" "+esc(c.r)+" "+esc(c.e||c.n)+'</span><span class="qc"><button onclick="cl('+k+',-1)">\u2212</button><b>'+q+'</b><button onclick="cl('+k+',1)">+</button><button class="rm" onclick="cl('+k+',-999)">\u2715</button></span><span class="pr">'+(D.rate&&c.p?money(c.p*q):"")+'</span></div>'}
   document.getElementById("ol").innerHTML=h;var x=tot();document.getElementById("otot").textContent=D.rate?x.n+" cards, total (reference): "+money(x.t):x.n+" cards";
