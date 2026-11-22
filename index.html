@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OPTCG.BN inventory</title><style>
+body{margin:0;background:#0e1013;color:#f2f3f5;font:15px system-ui,sans-serif}header{padding:20px 16px 8px}h1{margin:0;font-size:22px}
+.sub{color:#8e95a3;font-size:13px;margin-top:4px}.note{margin-top:10px;padding:10px 12px;background:#1a1d24;border-radius:10px;font-size:14px;white-space:pre-wrap}
+.bar{position:sticky;top:0;background:#0e1013;padding:10px 16px;display:flex;gap:8px;z-index:2}
+.bar input,.bar select{flex:1;background:#1a1d24;color:#f2f3f5;border:1px solid #2a2f39;border-radius:10px;padding:10px;font-size:14px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:8px 16px 40px}
+.c{background:#1a1d24;border-radius:12px;overflow:hidden;position:relative}.c img{width:100%;display:block;aspect-ratio:5/7;object-fit:cover;background:#252a33}
+.q{position:absolute;top:6px;right:6px;background:#e8b84a;color:#000;font-weight:700;border-radius:20px;padding:2px 9px;font-size:13px}
+.m{padding:8px 10px}.code{font-weight:600;font-size:13px}.r{color:#e8b84a;font-size:12px;margin-left:4px}.n{color:#8e95a3;font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.p{font-size:13px;margin-top:4px}
+footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}#msg{padding:30px 16px;font-size:14px}
+</style></head><body><header><h1 id="t">Loading...</h1><div class="sub" id="s"></div><div class="note" id="nt" style="display:none"></div></header>
+<div class="bar"><input id="q" placeholder="Search code or name" oninput="f()"><select id="st" onchange="f()"><option value="">All sets</option></select></div>
+<div id="msg"></div><div class="grid" id="g"></div><footer id="ft"></footer>
+<script>
+var REPO="norindamsyar/optcgbn-share";
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function load(){
+  return fetch("https://api.github.com/repos/"+REPO+"/contents/inventory.json",{headers:{"Accept":"application/vnd.github.raw"}})
+   .then(function(r){if(!r.ok)throw 0;return r.json()})
+   .catch(function(){return fetch("inventory.json?t="+Date.now()).then(function(r){return r.json()})});
+}
+function render(d){
+  document.getElementById("t").textContent=d.name||"One Piece card inventory";
+  document.title=(d.name||"OPTCG.BN")+" - inventory";
+  var cards=d.cards||[],n=0,tot=0;cards.forEach(function(c){n+=c.q;tot+=(c.p||0)*c.q});
+  var sub=n+" cards \u00b7 "+cards.length+" unique";
+  if(d.rate)sub+=" \u00b7 est. value B$"+(tot*d.rate).toLocaleString(undefined,{maximumFractionDigits:2});
+  if(d.updated)sub+=" \u00b7 updated "+new Date(d.updated).toLocaleString();
+  document.getElementById("s").textContent=sub;
+  if(d.note){var nt=document.getElementById("nt");nt.style.display="";nt.textContent=d.note}
+  var sets={};cards.forEach(function(c){sets[c.s]=1});var sel=document.getElementById("st");
+  Object.keys(sets).forEach(function(s){var o=document.createElement("option");o.textContent=s.toUpperCase();o.value=s;sel.appendChild(o)});
+  var h="";cards.forEach(function(c){
+    var nm=c.e?c.e+" / "+c.n:c.n,p="";
+    if(c.p&&d.rate){p="B$"+(c.p*d.rate).toFixed(2);if(d.mode==="both")p+=" (\u00a5"+c.p.toLocaleString()+")"}
+    h+='<div class="c" data-s="'+esc(c.s)+'" data-t="'+esc((c.c+" "+c.n+" "+(c.e||"")).toLowerCase())+'">'+
+      (c.i?'<img loading="lazy" referrerpolicy="no-referrer" src="'+esc(c.i)+'" alt="">':'')+
+      '<span class="q">x'+c.q+'</span><div class="m"><span class="code">'+esc(c.c)+'</span><span class="r">'+esc(c.r)+'</span><div class="n">'+esc(nm)+'</div>'+(p?'<div class="p">'+esc(p)+'</div>':'')+'</div></div>'});
+  document.getElementById("g").innerHTML=h;
+  document.getElementById("msg").style.display=cards.length?"none":"";
+  if(!cards.length)document.getElementById("msg").textContent="No cards published yet.";
+  document.getElementById("ft").textContent=(d.rate?"Prices are Yuyutei shop selling prices converted to BND, for reference only. ":"")+"Made with OPTCG.BN";
+}
+function f(){var q=document.getElementById("q").value.toLowerCase(),s=document.getElementById("st").value;
+  document.querySelectorAll(".c").forEach(function(e){e.style.display=(e.dataset.t.indexOf(q)>-1&&(!s||e.dataset.s==s))?"":"none"})}
+load().then(render).catch(function(){document.getElementById("t").textContent="Inventory unavailable";document.getElementById("msg").textContent="Could not load the inventory. Try again later."});
+</script></body></html>
