@@ -71,8 +71,8 @@ function sendOrder(){var nm=document.getElementById("bn").value.trim(),ph=docume
      if(o.s===200){var wl=waText(o.j.id,nm+" (+"+ph+")",note,"n");REFS.unshift({id:o.j.id,key:o.j.key});saveRefs();
        CART={};document.querySelectorAll(".ad").forEach(function(b){b.style.display=""});document.querySelectorAll(".st").forEach(function(b){if(b.id!=="st")b.style.display="none"});upd();
        localStorage.setItem("locked","1");SHOW=true;["bn","bp","bnote"].forEach(function(x){document.getElementById(x).style.display="none"});
-       res.innerHTML='<b>Order placed. Ref '+esc(o.j.id)+'</b><br>Your cards are booked while the seller reviews it. Opening WhatsApp to notify the seller: just tap Send. Check progress anytime under <b>My orders</b>.<br><a class="wa" target="_blank" href="'+wl+'">Open WhatsApp again</a>';
-       setTimeout(function(){location.href=wl},1500);
+       res.innerHTML='<b>Order placed. Ref '+esc(o.j.id)+'</b><br>Your cards are booked while the seller reviews it. Your order has been sent to the seller.'+(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)?" Opening WhatsApp to notify the seller: just tap Send.":" WhatsApp is optional here.")+' Check progress anytime under <b>My orders</b>.<br><a class="wa" target="_blank" href="'+wl+'">Also notify the seller on WhatsApp</a>';
+       var mob=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(mob)setTimeout(function(){location.href=wl},1500);
        document.getElementById("ol").innerHTML="";document.getElementById("otot").textContent="";document.querySelector(".sh .go").style.display="none";refresh()}
      else if(o.s===409||o.s===400||o.s===429){res.textContent=(o.j&&o.j.error)||"Could not place the order.";if(o.s===409)loadHolds()}
      else fallback("Could not reach the seller's order system.")})
