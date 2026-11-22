@@ -17,15 +17,15 @@ footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}f
 .sh{background:#1a1d24;width:100%;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px 24px;box-sizing:border-box}
 .sh input{width:100%;box-sizing:border-box;background:#0e1013;color:#f2f3f5;border:1px solid #2a2f39;border-radius:10px;padding:10px;margin:6px 0;font-size:14px}
 .ln{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2a2f39;font-size:13px;gap:8px}.sh .go{width:100%;margin-top:10px}.sh .x{background:#252a33;color:#f2f3f5;border:0;border-radius:10px;padding:10px;width:100%;margin-top:8px}
-.hint{color:#8e95a3;font-size:12px;margin-top:8px}.wa{display:inline-block;margin-top:8px;background:#25d366;color:#000;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none}
+.qc{display:inline-flex;align-items:center;gap:4px}.qc button{background:#252a33;color:#f2f3f5;border:0;border-radius:6px;width:28px;height:28px;font-size:16px}.qc .rm{color:#ff5a5f;margin-left:4px}.ln .pr{min-width:64px;text-align:right}.hint{color:#8e95a3;font-size:12px;margin-top:8px}.wa{display:inline-block;margin-top:8px;background:#25d366;color:#000;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none}
 </style></head><body><header><h1 id="t">Loading...</h1><div class="sub" id="s"></div><div class="note" id="nt" style="display:none"></div></header>
 <div id="refs" class="note" style="display:none;margin:0 16px"></div><div class="bar"><input id="q" placeholder="Search code or name" oninput="f()"><select id="st" onchange="f()"><option value="">All sets</option></select></div>
 <div id="msg"></div><div class="grid" id="g"></div><footer id="ft"></footer>
-<div id="cb"><span id="ct"></span><button onclick="openOrder()">Review order</button></div>
-<div class="ov" id="ov"><div class="sh"><h2 style="margin:0 0 8px">Your order</h2><div id="ol"></div><div id="otot" style="margin:10px 0;font-weight:600"></div>
-<input id="bn" placeholder="Your name"><input id="bnote" placeholder="Note (optional)">
-<div id="res" class="hint" style="color:#f2f3f5;font-size:14px;margin-top:10px"></div><button class="go" id="gobtn" onclick="sendOrder()">Place order</button><button class="x" onclick="closeOrder()">Back</button>
-<div class="hint">Your order goes to the seller for approval. No payment is taken here; the seller will contact you.</div></div></div>
+<div id="cb"><span id="ct"></span><button onclick="openOrder()">View my cart</button></div>
+<div class="ov" id="ov"><div class="sh"><h2 style="margin:0 0 8px">My cart</h2><div id="ol"></div><div id="otot" style="margin:10px 0;font-weight:600"></div>
+<input id="bn" placeholder="Your name (required)"><input id="bp" type="tel" inputmode="tel" placeholder="Your WhatsApp number (required) e.g. 6738123456"><input id="bnote" placeholder="Note (optional)">
+<div id="res" class="hint" style="color:#f2f3f5;font-size:14px;margin-top:10px"></div><button class="go" id="gobtn" onclick="sendOrder()">Place order</button><button class="x" onclick="closeOrder()">Keep shopping</button>
+<div class="hint">Your order goes to the seller for approval. No payment is taken here; the seller will contact you on WhatsApp.</div></div></div>
 <script>
 var D=null,CART={};
 var REPO="norindamsyar/optcgbn-share";
@@ -39,9 +39,12 @@ function money(t){return D.rate?"B$"+(t*D.rate).toFixed(2):""}
 function upd(){var x=tot(),b=document.getElementById("cb");b.style.display=x.n?"flex":"none";
   document.getElementById("ct").textContent=x.n+" card"+(x.n>1?"s":"")+(D.rate?" \u00b7 "+money(x.t):"")}
 function lines(){var o=[];for(var k in CART){var c=D.cards[k];o.push({c:c,q:CART[k]})}return o}
-function openOrder(){var h="";lines().forEach(function(l){h+='<div class="ln"><span>'+esc(l.c.c)+" "+esc(l.c.r)+" "+esc(l.c.e||l.c.n)+" x"+l.q+'</span><span>'+(D.rate&&l.c.p?money(l.c.p*l.q):"")+'</span></div>'});
-  document.getElementById("ol").innerHTML=h;var x=tot();document.getElementById("otot").textContent=D.rate?"Total (reference): "+money(x.t):x.n+" cards";
-  document.getElementById("bn").value=localStorage.getItem("bn")||"";document.getElementById("ov").classList.add("on")}
+function cl(k,d){chg(k,d);if(!tot().n){closeOrder()}else openOrder()}
+function openOrder(){var h="";for(var k in CART){var c=D.cards[k],q=CART[k];
+    h+='<div class="ln"><span style="flex:1">'+esc(c.c)+" "+esc(c.r)+" "+esc(c.e||c.n)+'</span><span class="qc"><button onclick="cl('+k+',-1)">\u2212</button><b>'+q+'</b><button onclick="cl('+k+',1)">+</button><button class="rm" onclick="cl('+k+',-999)">\u2715</button></span><span class="pr">'+(D.rate&&c.p?money(c.p*q):"")+'</span></div>'}
+  document.getElementById("ol").innerHTML=h;var x=tot();document.getElementById("otot").textContent=D.rate?x.n+" cards, total (reference): "+money(x.t):x.n+" cards";
+  var bn=document.getElementById("bn"),bp=document.getElementById("bp");if(!bn.value)bn.value=localStorage.getItem("bn")||"";if(!bp.value)bp.value=localStorage.getItem("bp")||"";
+  document.getElementById("ov").classList.add("on")}
 function closeOrder(){document.getElementById("ov").classList.remove("on");document.getElementById("res").textContent="";var g=document.querySelector(".sh .go");if(g)g.style.display=""}
 var API="https://optcgbn-orders.optcgbn.workers.dev";
 function waText(id,nm,note,saved){var x=tot();
@@ -51,20 +54,24 @@ function waText(id,nm,note,saved){var x=tot();
   if(note)m+="Note: "+note+"\n";
   m+=saved?"\nReview and approve: https://norindamsyar.github.io/optcgbn-share/approve.html?o="+id:"\nPlease confirm availability and payment.";
   return "https://wa.me/"+String(D.wa).replace(/\D/g,"")+"?text="+encodeURIComponent(m)}
-function sendOrder(){var nm=document.getElementById("bn").value.trim();if(!nm){alert("Please enter your name");return}
-  localStorage.setItem("bn",nm);var note=document.getElementById("bnote").value.trim(),res=document.getElementById("res"),go=document.getElementById("gobtn");
+function sendOrder(){var nm=document.getElementById("bn").value.trim(),ph=document.getElementById("bp").value.replace(/\D/g,""),res=document.getElementById("res"),go=document.getElementById("gobtn");
+  if(!nm){res.textContent="Please enter your name.";document.getElementById("bn").focus();return}
+  if(ph.length===7)ph="673"+ph;
+  if(ph.length<8||ph.length>15){res.textContent="Please enter a valid WhatsApp number with country code, e.g. 6738123456.";document.getElementById("bp").focus();return}
+  if(!tot().n){res.textContent="Your cart is empty.";return}
+  localStorage.setItem("bn",nm);localStorage.setItem("bp",ph);var note=document.getElementById("bnote").value.trim();
   var items=lines().map(function(l){return{id:l.c.id,q:l.q}});
   var ok=items.every(function(i){return i.id});
-  function fallback(msg){res.innerHTML=esc(msg)+'<br><a class="wa" target="_blank" href="'+waText("O"+Date.now().toString(36).toUpperCase().slice(-5),nm,note,false)+'">Send on WhatsApp instead</a>'}
+  function fallback(msg){res.innerHTML=esc(msg)+'<br><a class="wa" target="_blank" href="'+waText("O"+Date.now().toString(36).toUpperCase().slice(-5),nm+" (+"+ph+")",note,false)+'">Send on WhatsApp instead</a>'}
   if(!ok){fallback("Direct ordering is not available right now.");return}
   go.disabled=true;res.textContent="Sending...";
-  fetch(API+"/order",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:nm,note:note,items:items})})
+  fetch(API+"/order",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:nm,phone:ph,note:note,items:items})})
    .then(function(r){return r.json().then(function(j){return{s:r.status,j:j}})})
    .then(function(o){go.disabled=false;
-     if(o.s===200){var wl=waText(o.j.id,nm,note,true);var refs=JSON.parse(localStorage.getItem("refs")||"[]");refs.unshift(o.j.id);localStorage.setItem("refs",JSON.stringify(refs.slice(0,10)));
+     if(o.s===200){var wl=waText(o.j.id,nm+" (+"+ph+")",note,true);var refs=JSON.parse(localStorage.getItem("refs")||"[]");refs.unshift(o.j.id);localStorage.setItem("refs",JSON.stringify(refs.slice(0,10)));
        CART={};document.querySelectorAll(".ad").forEach(function(b){b.style.display=""});document.querySelectorAll(".st").forEach(function(b){if(b.id!=="st")b.style.display="none"});upd();
-       res.innerHTML='<b>Order placed. Ref '+esc(o.j.id)+'</b><br>The seller will review it. Tap below to also notify them on WhatsApp.<br><a class="wa" target="_blank" href="'+wl+'">Notify on WhatsApp</a>';
-       document.querySelector(".sh .go").style.display="none";showRefs()}
+       res.innerHTML='<b>Order placed. Ref '+esc(o.j.id)+'</b><br>The seller will review it and contact you on WhatsApp. Tap below to also notify them now.<br><a class="wa" target="_blank" href="'+wl+'">Notify on WhatsApp</a>';
+       document.getElementById("ol").innerHTML="";document.getElementById("otot").textContent="";document.querySelector(".sh .go").style.display="none";showRefs()}
      else if(o.s===409||o.s===400||o.s===429)res.textContent=(o.j&&o.j.error)||"Could not place the order.";
      else fallback("Could not reach the seller's order system.")})
    .catch(function(){go.disabled=false;fallback("Could not reach the seller's order system.")})}
