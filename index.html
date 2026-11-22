@@ -49,7 +49,7 @@ function waText(id,nm,note,saved){var x=tot();
   lines().forEach(function(l){m+="- "+l.c.c+" "+l.c.r+" "+(l.c.e||l.c.n)+" x"+l.q+(D.rate&&l.c.p?" ("+money(l.c.p*l.q)+")":"")+"\n"});
   m+="\n"+x.n+" cards"+(D.rate?", total "+money(x.t)+" (reference)":"")+"\n";
   if(note)m+="Note: "+note+"\n";
-  m+=saved?"\nPlease review and approve in the app.":"\nPlease confirm availability and payment.";
+  m+=saved?"\nReview and approve: https://norindamsyar.github.io/optcgbn-share/approve.html?o="+id:"\nPlease confirm availability and payment.";
   return "https://wa.me/"+String(D.wa).replace(/\D/g,"")+"?text="+encodeURIComponent(m)}
 function sendOrder(){var nm=document.getElementById("bn").value.trim();if(!nm){alert("Please enter your name");return}
   localStorage.setItem("bn",nm);var note=document.getElementById("bnote").value.trim(),res=document.getElementById("res"),go=document.getElementById("gobtn");
