@@ -17,7 +17,7 @@ footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}f
 .sh{background:#1a1d24;width:100%;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px 24px;box-sizing:border-box}
 .sh input{width:100%;box-sizing:border-box;background:#0e1013;color:#f2f3f5;border:1px solid #2a2f39;border-radius:10px;padding:10px;margin:6px 0;font-size:14px}
 .ln{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2a2f39;font-size:13px;gap:8px}.sh .go{width:100%;margin-top:10px}.sh .x{background:#252a33;color:#f2f3f5;border:0;border-radius:10px;padding:10px;width:100%;margin-top:8px}
-.qc{display:inline-flex;align-items:center;gap:4px}.qc button{background:#252a33;color:#f2f3f5;border:0;border-radius:6px;width:28px;height:28px;font-size:16px}.qc .rm{color:#ff5a5f;margin-left:4px}.ln .pr{min-width:64px;text-align:right}.hint{color:#8e95a3;font-size:12px;margin-top:8px}.wa{display:inline-block;margin-top:8px;background:#25d366;color:#000;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none}
+.qc{display:inline-flex;align-items:center;gap:4px}.qc button{background:#252a33;color:#f2f3f5;border:0;border-radius:6px;width:28px;height:28px;font-size:16px}.qc .rm{color:#ff5a5f;margin-left:4px}.ln .pr{min-width:64px;text-align:right}.rf{padding:8px 0;border-bottom:1px solid #2a2f39;font-size:14px}.rf:last-child{border:0}.rf button{background:#252a33;color:#f2f3f5;border:0;border-radius:8px;padding:8px 12px;margin:6px 6px 0 0;font-weight:600}.rf button.pay{background:#e8b84a;color:#000}.bk{color:#e8b84a;font-size:11px;padding:0 10px 6px}.sold{opacity:.6}.hint{color:#8e95a3;font-size:12px;margin-top:8px}.wa{display:inline-block;margin-top:8px;background:#25d366;color:#000;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none}
 </style></head><body><header><h1 id="t">Loading...</h1><div class="sub" id="s"></div><div class="note" id="nt" style="display:none"></div></header>
 <div id="refs" class="note" style="display:none;margin:0 16px"></div><div class="bar"><input id="q" placeholder="Search code or name" oninput="f()"><select id="st" onchange="f()"><option value="">All sets</option></select></div>
 <div id="msg"></div><div class="grid" id="g"></div><footer id="ft"></footer>
@@ -27,18 +27,18 @@ footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}f
 <div id="res" class="hint" style="color:#f2f3f5;font-size:14px;margin-top:10px"></div><button class="go" id="gobtn" onclick="sendOrder()">Place order</button><button class="x" onclick="closeOrder()">Keep shopping</button>
 <div class="hint">Your order goes to the seller for approval. No payment is taken here; the seller will contact you on WhatsApp.</div></div></div>
 <script>
-var D=null,CART={};
-var REPO="norindamsyar/optcgbn-share";
+var D=null,CART={},HELD={},REFS=[],timer=null;
+var REPO="norindamsyar/optcgbn-share",API="https://optcgbn-orders.optcgbn.workers.dev",LINK="https://norindamsyar.github.io/optcgbn-share/approve.html?o=";
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-
-function chg(i,dl){var c=D.cards[i],q=(CART[i]||0)+dl;if(q>c.q)q=c.q;if(q<=0){delete CART[i];q=0}else CART[i]=q;
+function av(c){return Math.max(0,c.q-(HELD[c.id]||0))}
+function chg(i,dl){var c=D.cards[i],q=(CART[i]||0)+dl;if(q>av(c))q=av(c);if(q<=0){delete CART[i];q=0}else CART[i]=q;
   var a=document.querySelector('.ad[data-k="'+i+'"]'),s=document.getElementById("st"+i);
-  a.style.display=q?"none":"";s.style.display=q?"flex":"none";document.getElementById("sq"+i).textContent=q;upd()}
+  if(a){a.style.display=q?"none":"";s.style.display=q?"flex":"none";document.getElementById("sq"+i).textContent=q}upd()}
 function tot(){var n=0,t=0;for(var k in CART){n+=CART[k];t+=(D.cards[k].p||0)*CART[k]}return{n:n,t:t}}
 function money(t){return D.rate?"B$"+(t*D.rate).toFixed(2):""}
 function upd(){var x=tot(),b=document.getElementById("cb");b.style.display=x.n?"flex":"none";
   document.getElementById("ct").textContent=x.n+" card"+(x.n>1?"s":"")+(D.rate?" \u00b7 "+money(x.t):"")}
-function lines(){var o=[];for(var k in CART){var c=D.cards[k];o.push({c:c,q:CART[k]})}return o}
+function lines(){var o=[];for(var k in CART){o.push({c:D.cards[k],q:CART[k]})}return o}
 function cl(k,d){chg(k,d);if(!tot().n){closeOrder()}else openOrder()}
 function openOrder(){var h="";for(var k in CART){var c=D.cards[k],q=CART[k];
     h+='<div class="ln"><span style="flex:1">'+esc(c.c)+" "+esc(c.r)+" "+esc(c.e||c.n)+'</span><span class="qc"><button onclick="cl('+k+',-1)">\u2212</button><b>'+q+'</b><button onclick="cl('+k+',1)">+</button><button class="rm" onclick="cl('+k+',-999)">\u2715</button></span><span class="pr">'+(D.rate&&c.p?money(c.p*q):"")+'</span></div>'}
@@ -46,13 +46,11 @@ function openOrder(){var h="";for(var k in CART){var c=D.cards[k],q=CART[k];
   var bn=document.getElementById("bn"),bp=document.getElementById("bp");if(!bn.value)bn.value=localStorage.getItem("bn")||"";if(!bp.value)bp.value=localStorage.getItem("bp")||"";
   document.getElementById("ov").classList.add("on")}
 function closeOrder(){document.getElementById("ov").classList.remove("on");document.getElementById("res").textContent="";var g=document.querySelector(".sh .go");if(g)g.style.display=""}
-var API="https://optcgbn-orders.optcgbn.workers.dev";
-function waText(id,nm,note,saved){var x=tot();
-  var m="*New order "+id+"* - "+(D.name||"OPTCG.BN")+"\nFrom: "+nm+"\n\n";
-  lines().forEach(function(l){m+="- "+l.c.c+" "+l.c.r+" "+(l.c.e||l.c.n)+" x"+l.q+(D.rate&&l.c.p?" ("+money(l.c.p*l.q)+")":"")+"\n"});
-  m+="\n"+x.n+" cards"+(D.rate?", total "+money(x.t)+" (reference)":"")+"\n";
-  if(note)m+="Note: "+note+"\n";
-  m+=saved?"\nReview and approve: https://norindamsyar.github.io/optcgbn-share/approve.html?o="+id:"\nPlease confirm availability and payment.";
+function waText(id,who,note,kind){var x=tot();
+  var m="*"+(kind==="paid"?"Payment made for order ":"New order ")+id+"* - "+(D.name||"OPTCG.BN")+"\nFrom: "+who+"\n";
+  if(kind!=="paid"){m+="\n";lines().forEach(function(l){m+="- "+l.c.c+" "+l.c.r+" "+(l.c.e||l.c.n)+" x"+l.q+(D.rate&&l.c.p?" ("+money(l.c.p*l.q)+")":"")+"\n"});
+    m+="\n"+x.n+" cards"+(D.rate?", total "+money(x.t)+" (reference)":"")+"\n";if(note)m+="Note: "+note+"\n"}
+  m+=kind==="x"?"\nPlease confirm availability and payment.":"\nReview in the app: "+LINK+id;
   return "https://wa.me/"+String(D.wa).replace(/\D/g,"")+"?text="+encodeURIComponent(m)}
 function sendOrder(){var nm=document.getElementById("bn").value.trim(),ph=document.getElementById("bp").value.replace(/\D/g,""),res=document.getElementById("res"),go=document.getElementById("gobtn");
   if(!nm){res.textContent="Please enter your name.";document.getElementById("bn").focus();return}
@@ -62,23 +60,40 @@ function sendOrder(){var nm=document.getElementById("bn").value.trim(),ph=docume
   localStorage.setItem("bn",nm);localStorage.setItem("bp",ph);var note=document.getElementById("bnote").value.trim();
   var items=lines().map(function(l){return{id:l.c.id,q:l.q}});
   var ok=items.every(function(i){return i.id});
-  function fallback(msg){res.innerHTML=esc(msg)+'<br><a class="wa" target="_blank" href="'+waText("O"+Date.now().toString(36).toUpperCase().slice(-5),nm+" (+"+ph+")",note,false)+'">Send on WhatsApp instead</a>'}
+  function fallback(msg){res.innerHTML=esc(msg)+'<br><a class="wa" target="_blank" href="'+waText("O"+Date.now().toString(36).toUpperCase().slice(-5),nm+" (+"+ph+")",note,"x")+'">Send on WhatsApp instead</a>'}
   if(!ok){fallback("Direct ordering is not available right now.");return}
   go.disabled=true;res.textContent="Sending...";
   fetch(API+"/order",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:nm,phone:ph,note:note,items:items})})
    .then(function(r){return r.json().then(function(j){return{s:r.status,j:j}})})
    .then(function(o){go.disabled=false;
-     if(o.s===200){var wl=waText(o.j.id,nm+" (+"+ph+")",note,true);var refs=JSON.parse(localStorage.getItem("refs")||"[]");refs.unshift(o.j.id);localStorage.setItem("refs",JSON.stringify(refs.slice(0,10)));
+     if(o.s===200){var wl=waText(o.j.id,nm+" (+"+ph+")",note,"n");REFS.unshift({id:o.j.id,key:o.j.key});saveRefs();
        CART={};document.querySelectorAll(".ad").forEach(function(b){b.style.display=""});document.querySelectorAll(".st").forEach(function(b){if(b.id!=="st")b.style.display="none"});upd();
-       res.innerHTML='<b>Order placed. Ref '+esc(o.j.id)+'</b><br>The seller will review it and contact you on WhatsApp. Tap below to also notify them now.<br><a class="wa" target="_blank" href="'+wl+'">Notify on WhatsApp</a>';
-       document.getElementById("ol").innerHTML="";document.getElementById("otot").textContent="";document.querySelector(".sh .go").style.display="none";showRefs()}
-     else if(o.s===409||o.s===400||o.s===429)res.textContent=(o.j&&o.j.error)||"Could not place the order.";
+       res.innerHTML='<b>Order placed. Ref '+esc(o.j.id)+'</b><br>The seller will review it. Your cards are booked for you while it is reviewed. You will see the next step (payment) on this page. Tap below to also notify the seller now.<br><a class="wa" target="_blank" href="'+wl+'">Notify on WhatsApp</a>';
+       document.getElementById("ol").innerHTML="";document.getElementById("otot").textContent="";document.querySelector(".sh .go").style.display="none";refresh()}
+     else if(o.s===409||o.s===400||o.s===429){res.textContent=(o.j&&o.j.error)||"Could not place the order.";if(o.s===409)loadHolds()}
      else fallback("Could not reach the seller's order system.")})
    .catch(function(){go.disabled=false;fallback("Could not reach the seller's order system.")})}
-function showRefs(){var refs=JSON.parse(localStorage.getItem("refs")||"[]"),el=document.getElementById("refs");if(!refs.length){el.style.display="none";return}
-  el.style.display="block";el.textContent="Checking your orders...";
-  Promise.all(refs.slice(0,3).map(function(id){return fetch(API+"/status/"+id).then(function(r){return r.ok?r.json():{id:id,status:"expired"}}).catch(function(){return{id:id,status:"unknown"}})}))
-   .then(function(a){el.innerHTML=a.map(function(o){return"Order "+esc(o.id)+": <b>"+esc(o.status)+"</b>"}).join("<br>")})}
+function loadRefs(){try{var r=JSON.parse(localStorage.getItem("refs2")||"null");if(r)return r}catch(e){}
+  try{return(JSON.parse(localStorage.getItem("refs")||"[]")).map(function(i){return{id:i}})}catch(e){return[]}}
+function saveRefs(){REFS=REFS.slice(0,10);localStorage.setItem("refs2",JSON.stringify(REFS))}
+function act(id,what){var r=REFS.filter(function(x){return x.id===id})[0];if(!r||!r.key)return;
+  if(what==="cancel"&&!confirm("Cancel this order?"))return;
+  fetch(API+"/order/"+id+"/"+what,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key:r.key})})
+   .then(function(x){return x.json().then(function(j){return{s:x.status,j:j}})})
+   .then(function(o){if(o.s!==200)alert(o.j.error||"Failed");loadHolds();refresh()}).catch(function(){alert("Network error")})}
+function refresh(){var el=document.getElementById("refs");if(!REFS.length){el.style.display="none";return}
+  Promise.all(REFS.slice(0,5).map(function(r){return fetch(API+"/status/"+r.id).then(function(x){return x.ok?x.json():{id:r.id,status:"expired"}}).catch(function(){return{id:r.id,status:"unknown"}})}))
+   .then(function(a){var h="",live=false;
+     a.forEach(function(o,i){var r=REFS[i],s=o.status,t="";
+       if(s==="pending"){live=true;t="Order <b>"+esc(o.id)+"</b>: waiting for the seller to approve. Your cards are booked."+(r.key?'<br><button onclick="act(\''+o.id+'\',\'cancel\')">Cancel order</button>':"")}
+       else if(s==="approved"){live=true;t="Order <b>"+esc(o.id)+"</b> is approved. <b>Please pay now.</b>"+(D&&D.pay?'<div class="note" style="margin:6px 0">'+esc(D.pay)+'</div>':"<br>The seller will send you payment details on WhatsApp.")+(r.key?'<br><button class="pay" onclick="act(\''+o.id+'\',\'paid\')">I have paid</button><button onclick="act(\''+o.id+'\',\'cancel\')">Cancel order</button>':"")}
+       else if(s==="paid"){live=true;t="Order <b>"+esc(o.id)+"</b>: payment submitted. Waiting for the seller to confirm it."+(D&&D.wa?'<br><a class="wa" target="_blank" href="'+waText(o.id,(localStorage.getItem("bn")||"buyer"),"","paid")+'">Tell the seller on WhatsApp</a>':"")}
+       else if(s==="completed")t="Order <b>"+esc(o.id)+"</b> is complete. Thank you!";
+       else t="Order <b>"+esc(o.id)+"</b>: "+esc(s)+".";
+       h+='<div class="rf">'+t+'</div>'});
+     el.style.display="block";el.innerHTML=h;
+     clearTimeout(timer);if(live)timer=setTimeout(function(){loadHolds();refresh()},30000)})}
+function loadHolds(){return fetch(API+"/holds").then(function(r){return r.json()}).then(function(j){HELD=j.held||{};if(D)draw()}).catch(function(){})}
 function load(){
   return fetch("https://api.github.com/repos/"+REPO+"/contents/inventory.json",{headers:{"Accept":"application/vnd.github.raw"}})
    .then(function(r){if(!r.ok)throw 0;return r.json()})
@@ -96,19 +111,25 @@ function render(d){
   if(d.note){var nt=document.getElementById("nt");nt.style.display="";nt.textContent=d.note}
   var sets={};cards.forEach(function(c){sets[c.s]=1});var sel=document.getElementById("st");
   Object.keys(sets).forEach(function(s){var o=document.createElement("option");o.textContent=s.toUpperCase();o.value=s;sel.appendChild(o)});
-  var h="";cards.forEach(function(c,i){
-    var nm=c.e?c.e+" / "+c.n:c.n,p="";
-    if(c.p&&d.rate){p="B$"+(c.p*d.rate).toFixed(2);if(d.mode==="both")p+=" (\u00a5"+c.p.toLocaleString()+")"}
-    h+='<div class="c" data-s="'+esc(c.s)+'" data-t="'+esc((c.c+" "+c.n+" "+(c.e||"")).toLowerCase())+'">'+
-      (c.i?'<img loading="lazy" referrerpolicy="no-referrer" src="'+esc(c.i)+'" alt="">':'')+
-      '<span class="q">x'+c.q+'</span><div class="m"><span class="code">'+esc(c.c)+'</span><span class="r">'+esc(c.r)+'</span><div class="n">'+esc(nm)+'</div>'+(p?'<div class="p">'+esc(p)+'</div>':'')+'</div>'+(d.wa?'<div class="ctl on"><button class="ad" data-k="'+i+'" onclick="chg('+i+',1)">Add to order</button><div class="st" id="st'+i+'"><button onclick="chg('+i+',-1)">\u2212</button><b id="sq'+i+'">0</b><button onclick="chg('+i+',1)">+</button></div></div>':'')+'</div>'});
-  document.getElementById("g").innerHTML=h;
   document.getElementById("msg").style.display=cards.length?"none":"";
   if(!cards.length)document.getElementById("msg").textContent="No cards published yet.";
-  showRefs();
   document.getElementById("ft").textContent=(d.rate?"Prices are Yuyutei shop selling prices converted to BND, for reference only. ":"")+"Made with OPTCG.BN";
+  draw();refresh();
 }
+function draw(){var d=D,cards=d.cards||[],h="";
+  cards.forEach(function(c,i){
+    var nm=c.e?c.e+" / "+c.n:c.n,p="",a=av(c),held=HELD[c.id]||0;
+    if(c.p&&d.rate){p="B$"+(c.p*d.rate).toFixed(2);if(d.mode==="both")p+=" (\u00a5"+c.p.toLocaleString()+")"}
+    if(CART[i]>a){if(a>0)CART[i]=a;else delete CART[i]}
+    var q=CART[i]||0;
+    h+='<div class="c'+(a===0?' sold':'')+'" data-s="'+esc(c.s)+'" data-t="'+esc((c.c+" "+c.n+" "+(c.e||"")).toLowerCase())+'">'+
+      (c.i?'<img loading="lazy" referrerpolicy="no-referrer" src="'+esc(c.i)+'" alt="">':'')+
+      '<span class="q">'+(a>0?'x'+a:'Booked')+'</span><div class="m"><span class="code">'+esc(c.c)+'</span><span class="r">'+esc(c.r)+'</span><div class="n">'+esc(nm)+'</div>'+(p?'<div class="p">'+esc(p)+'</div>':'')+'</div>'+
+      (held?'<div class="bk">'+held+' booked, pending approval or payment</div>':'')+
+      (d.wa&&a>0?'<div class="ctl on"><button class="ad" data-k="'+i+'" style="display:'+(q?'none':'block')+'" onclick="chg('+i+',1)">Add to order</button><div class="st" id="st'+i+'" style="display:'+(q?'flex':'none')+'"><button onclick="chg('+i+',-1)">\u2212</button><b id="sq'+i+'">'+q+'</b><button onclick="chg('+i+',1)">+</button></div></div>':'')+'</div>'});
+  document.getElementById("g").innerHTML=h;upd();f()}
 function f(){var q=document.getElementById("q").value.toLowerCase(),s=document.getElementById("st").value;
   document.querySelectorAll(".c").forEach(function(e){e.style.display=(e.dataset.t.indexOf(q)>-1&&(!s||e.dataset.s==s))?"":"none"})}
-load().then(render).catch(function(){document.getElementById("t").textContent="Inventory unavailable";document.getElementById("msg").textContent="Could not load the inventory. Try again later."});
+REFS=loadRefs();
+Promise.all([load(),fetch(API+"/holds").then(function(r){return r.json()}).catch(function(){return{held:{}}})]).then(function(a){HELD=a[1].held||{};render(a[0])}).catch(function(){document.getElementById("t").textContent="Inventory unavailable";document.getElementById("msg").textContent="Could not load the inventory. Try again later."});
 </script></body></html>
