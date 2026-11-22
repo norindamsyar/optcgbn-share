@@ -1,0 +1,7 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Open OPTCG.BN</title>
+<style>body{margin:0;background:#0e1013;color:#f2f3f5;font:16px system-ui,sans-serif;padding:40px 20px;text-align:center}a{display:inline-block;margin-top:20px;background:#e8b84a;color:#000;font-weight:700;padding:14px 22px;border-radius:12px;text-decoration:none}p{color:#8e95a3}</style></head><body>
+<h2>Order <span id="o"></span></h2><p>Opening the OPTCG.BN app to review this order...</p><a id="b" href="#">Open in OPTCG.BN app</a>
+<p>If nothing happens, this link only works on the seller phone with the OPTCG.BN app installed.</p>
+<script>var id=(new URLSearchParams(location.search).get('o')||'').replace(/[^A-Za-z0-9]/g,'');document.getElementById('o').textContent=id;
+var u='intent://order/'+id+'#Intent;scheme=optcgbn;package=com.norind.optcgscan;end';document.getElementById('b').href=u;
+if(/Android/i.test(navigator.userAgent)&&id)setTimeout(function(){location.href=u},300);</script></body></html>
