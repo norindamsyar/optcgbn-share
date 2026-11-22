@@ -17,7 +17,7 @@ footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}f
 .sh{background:#1a1d24;width:100%;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 16px 24px;box-sizing:border-box}
 .sh input{width:100%;box-sizing:border-box;background:#0e1013;color:#f2f3f5;border:1px solid #2a2f39;border-radius:10px;padding:10px;margin:6px 0;font-size:14px}
 .ln{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2a2f39;font-size:13px;gap:8px}.sh .go{width:100%;margin-top:10px}.sh .x{background:#252a33;color:#f2f3f5;border:0;border-radius:10px;padding:10px;width:100%;margin-top:8px}
-.qc{display:inline-flex;align-items:center;gap:4px}.qc button{background:#252a33;color:#f2f3f5;border:0;border-radius:6px;width:28px;height:28px;font-size:16px}.qc .rm{color:#ff5a5f;margin-left:4px}.ln .pr{min-width:64px;text-align:right}.rf{padding:8px 0;border-bottom:1px solid #2a2f39;font-size:14px}.rf:last-child{border:0}.rf button{background:#252a33;color:#f2f3f5;border:0;border-radius:8px;padding:8px 12px;margin:6px 6px 0 0;font-weight:600}.rf button.pay{background:#e8b84a;color:#000}.bk{color:#e8b84a;font-size:11px;padding:0 10px 6px}.sold{opacity:.6}.hint{color:#8e95a3;font-size:12px;margin-top:8px}.wa{display:inline-block;margin-top:8px;background:#25d366;color:#000;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none}
+.qc{display:inline-flex;align-items:center;gap:4px}.qc button{background:#252a33;color:#f2f3f5;border:0;border-radius:6px;width:28px;height:28px;font-size:16px}.qc .rm{color:#ff5a5f;margin-left:4px}.ln .pr{min-width:64px;text-align:right}.rf{padding:8px 0;border-bottom:1px solid #2a2f39;font-size:14px}.rf:last-child{border:0}.rf button{background:#252a33;color:#f2f3f5;border:0;border-radius:8px;padding:8px 12px;margin:6px 6px 0 0;font-weight:600}.rf button.pay{background:#e8b84a;color:#000}.bk{color:#e8b84a;font-size:11px;padding:0 10px 6px}.sold{opacity:.6}.oid{color:#e8b84a;font-weight:700;text-decoration:underline}.tl{font-size:13px;color:#8e95a3;padding:2px 0}.tl b{color:#f2f3f5}.oi{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #2a2f39;align-items:center}.oi img{width:54px;aspect-ratio:5/7;object-fit:cover;border-radius:6px;background:#252a33}.chipx{display:inline-block;background:#e8b84a;color:#000;font-weight:700;border-radius:20px;padding:2px 10px;font-size:12px}.hint{color:#8e95a3;font-size:12px;margin-top:8px}.wa{display:inline-block;margin-top:8px;background:#25d366;color:#000;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none}
 </style></head><body><header><h1 id="t">Loading...</h1><div class="sub" id="s"></div><button id="mo" style="display:none;margin-top:10px;background:#e8b84a;color:#000;border:0;border-radius:10px;padding:9px 14px;font-weight:700;font-size:14px" onclick="toggleRefs()">My orders</button><div class="note" id="nt" style="display:none"></div></header>
 <div id="refs" class="note" style="display:none;margin:0 16px"></div><div class="bar"><input id="q" placeholder="Search code or name" oninput="f()"><select id="st" onchange="f()"><option value="">All sets</option></select></div>
 <div id="msg"></div><div class="grid" id="g"></div><footer id="ft"></footer>
@@ -26,6 +26,7 @@ footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}f
 <input id="bn" placeholder="Your name (required)"><input id="bp" type="tel" inputmode="tel" placeholder="Your WhatsApp number (required) e.g. 6738123456"><input id="bnote" placeholder="Note (optional)">
 <div id="res" class="hint" style="color:#f2f3f5;font-size:14px;margin-top:10px"></div><button class="go" id="gobtn" onclick="sendOrder()">Place order</button><button class="x" onclick="closeOrder()">Keep shopping</button>
 <div class="hint">Your order goes to the seller for approval. No payment is taken here; the seller will contact you on WhatsApp. Your name and number cannot be changed after your first order.</div></div></div>
+<div class="ov" id="ov2"><div class="sh" id="od"></div></div>
 <script>
 var D=null,CART={},HELD={},STAGE={},REFS=[],timer=null,SHOW=false;
 var REPO="norindamsyar/optcgbn-share",API="https://optcgbn-orders.optcgbn.workers.dev",LINK="https://norindamsyar.github.io/optcgbn-share/approve.html?o=";
@@ -76,6 +77,24 @@ function sendOrder(){var nm=document.getElementById("bn").value.trim(),ph=docume
      else if(o.s===409||o.s===400||o.s===429){res.textContent=(o.j&&o.j.error)||"Could not place the order.";if(o.s===409)loadHolds()}
      else fallback("Could not reach the seller's order system.")})
    .catch(function(){go.disabled=false;fallback("Could not reach the seller's order system.")})}
+function oid(id){return '<a href="#" class="oid" onclick="showOrder(\''+id+'\');return false">'+esc(id)+'</a>'}
+function fdt(s){return s?new Date(s).toLocaleString([], {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):""}
+function showOrder(id){var r=REFS.filter(function(x){return x.id===id})[0],od=document.getElementById("od"),ov=document.getElementById("ov2");
+  ov.classList.add("on");od.innerHTML='<h2 style="margin:0 0 8px">Order '+esc(id)+'</h2><div class="hint">Loading...</div>';
+  if(!r||!r.key){od.innerHTML='<h2 style="margin:0 0 8px">Order '+esc(id)+'</h2><div class="hint">Details are not available for this order on this device.</div><button class="x" onclick="closeOd()">Close</button>';return}
+  fetch(API+"/order/"+id+"?key="+encodeURIComponent(r.key)).then(function(x){return x.json().then(function(j){return{s:x.status,j:j}})}).then(function(o){
+    if(o.s!==200){od.innerHTML='<h2 style="margin:0 0 8px">Order '+esc(id)+'</h2><div class="hint">'+esc(o.j.error||"Could not load")+'</div><button class="x" onclick="closeOd()">Close</button>';return}
+    var j=o.j,by={};(D.cards||[]).forEach(function(c){by[c.id]=c});var h='<h2 style="margin:0 0 4px">Order '+esc(j.id)+'</h2><span class="chipx">'+esc(j.status.toUpperCase())+'</span>';
+    h+='<div style="margin:10px 0 6px">';var tl=[["Placed",j.created],["Approved by seller",j.approved_at],["Payment submitted",j.paid_at],["Completed",j.completed_at]];
+    tl.forEach(function(t){if(t[1])h+='<div class="tl"><b>'+t[0]+'</b> '+esc(fdt(t[1]))+'</div>'});
+    if(["declined","cancelled","expired"].indexOf(j.status)>-1)h+='<div class="tl"><b>'+esc(j.status.charAt(0).toUpperCase()+j.status.slice(1))+'</b> '+esc(fdt(j.updated))+'</div>';
+    h+='</div>';var t=0;
+    j.lines.forEach(function(l){var c=by[l.id],img=c&&c.i?c.i:"",p=l.p&&j.rate?l.p*j.rate*l.q:0;t+=p;
+      h+='<div class="oi">'+(img?'<img referrerpolicy="no-referrer" src="'+esc(img)+'" alt="">':'<div style="width:54px"></div>')+'<div style="flex:1"><b>'+esc(l.c)+'</b> '+esc(l.r)+'<div class="tl">'+esc(l.e||l.n)+'</div><div class="tl">Qty '+l.q+(p?' \u00b7 B$'+p.toFixed(2):'')+'</div></div></div>'});
+    if(t)h+='<div style="margin:10px 0;font-weight:600">Total (reference): B$'+t.toFixed(2)+'</div>';
+    if(j.note)h+='<div class="tl">Note: '+esc(j.note)+'</div>';
+    h+='<button class="x" onclick="closeOd()">Close</button>';od.innerHTML=h}).catch(function(){od.innerHTML='<div class="hint">Network error</div><button class="x" onclick="closeOd()">Close</button>'})}
+function closeOd(){document.getElementById("ov2").classList.remove("on")}
 function loadRefs(){try{var r=JSON.parse(localStorage.getItem("refs2")||"null");if(r)return r}catch(e){}
   try{return(JSON.parse(localStorage.getItem("refs")||"[]")).map(function(i){return{id:i}})}catch(e){return[]}}
 function saveRefs(){REFS=REFS.slice(0,10);localStorage.setItem("refs2",JSON.stringify(REFS))}
@@ -89,11 +108,11 @@ function refresh(){var el=document.getElementById("refs"),mo=document.getElement
   Promise.all(REFS.slice(0,5).map(function(r){return fetch(API+"/status/"+r.id).then(function(x){return x.ok?x.json():{id:r.id,status:"expired"}}).catch(function(){return{id:r.id,status:"unknown"}})}))
    .then(function(a){var h="",live=false;
      a.forEach(function(o,i){var r=REFS[i],s=o.status,t="";
-       if(s==="pending"){live=true;t="Order <b>"+esc(o.id)+"</b>: waiting for the seller to approve. Your cards are booked."+(r.key?'<br><button onclick="act(\''+o.id+'\',\'cancel\')">Cancel order</button>':"")}
-       else if(s==="approved"){live=true;t="Order <b>"+esc(o.id)+"</b> is approved. <b>Please pay now.</b>"+(D&&D.pay?'<div class="note" style="margin:6px 0">'+esc(D.pay)+'</div>':"<br>The seller will send you payment details on WhatsApp.")+(r.key?'<br><button class="pay" onclick="act(\''+o.id+'\',\'paid\')">I have paid</button><button onclick="act(\''+o.id+'\',\'cancel\')">Cancel order</button>':"")}
-       else if(s==="paid"){live=true;t="Order <b>"+esc(o.id)+"</b>: payment submitted. Waiting for the seller to confirm it."+(D&&D.wa?'<br><a class="wa" target="_blank" href="'+waText(o.id,(localStorage.getItem("bn")||"buyer"),"","paid")+'">Tell the seller on WhatsApp</a>':"")}
-       else if(s==="completed")t="Order <b>"+esc(o.id)+"</b> is complete. Thank you!";
-       else t="Order <b>"+esc(o.id)+"</b>: "+esc(s)+".";
+       if(s==="pending"){live=true;t="Order "+oid(o.id)+": waiting for the seller to approve. Your cards are booked."+(r.key?'<br><button onclick="act(\''+o.id+'\',\'cancel\')">Cancel order</button>':"")}
+       else if(s==="approved"){live=true;t="Order "+oid(o.id)+" is approved. <b>Please pay now.</b>"+(D&&D.pay?'<div class="note" style="margin:6px 0">'+esc(D.pay)+'</div>':"<br>The seller will send you payment details on WhatsApp.")+(r.key?'<br><button class="pay" onclick="act(\''+o.id+'\',\'paid\')">I have paid</button><button onclick="act(\''+o.id+'\',\'cancel\')">Cancel order</button>':"")}
+       else if(s==="paid"){live=true;t="Order "+oid(o.id)+": payment submitted. Waiting for the seller to confirm it."+(D&&D.wa?'<br><a class="wa" target="_blank" href="'+waText(o.id,(localStorage.getItem("bn")||"buyer"),"","paid")+'">Tell the seller on WhatsApp</a>':"")}
+       else if(s==="completed")t="Order "+oid(o.id)+" is complete. Thank you!";
+       else t="Order "+oid(o.id)+": "+esc(s)+".";
        h+='<div class="rf">'+t+'</div>'});
      var act2=a.filter(function(o){return["pending","approved","paid"].indexOf(o.status)>-1}).length;mo.textContent="My orders"+(act2?" ("+act2+" active)":"")+(SHOW?" \u25B2":" \u25BC");el.style.display=SHOW?"block":"none";el.innerHTML=h;
      clearTimeout(timer);if(live)timer=setTimeout(function(){loadHolds();refresh()},30000)})}
@@ -129,7 +148,7 @@ function draw(){var d=D,cards=d.cards||[],h="";
     h+='<div class="c'+(a===0?' sold':'')+'" data-s="'+esc(c.s)+'" data-t="'+esc((c.c+" "+c.n+" "+(c.e||"")).toLowerCase())+'">'+
       (c.i?'<img loading="lazy" referrerpolicy="no-referrer" src="'+esc(c.i)+'" alt="">':'')+
       '<span class="q">'+(a>0?'x'+a:'Booked')+'</span><div class="m"><span class="code">'+esc(c.c)+'</span><span class="r">'+esc(c.r)+'</span><div class="n">'+esc(nm)+'</div>'+(p?'<div class="p">'+esc(p)+'</div>':'')+'</div>'+
-      (held?'<div class="bk">'+'Another user is buying: '+(STAGE[c.id]==='payment'?'pending payment':'pending approval')+'</div>':'')+
+      (held?'<div class="bk">'+(STAGE[c.id]==='sold'?'Just sold, stock is updating':'Another user is buying: '+(STAGE[c.id]==='payment'?'pending payment':'pending approval'))+'</div>':'')+
       (d.wa&&a>0?'<div class="ctl on"><button class="ad" data-k="'+i+'" style="display:'+(q?'none':'block')+'" onclick="chg('+i+',1)">Add to order</button><div class="st" id="st'+i+'" style="display:'+(q?'flex':'none')+'"><button onclick="chg('+i+',-1)">\u2212</button><b id="sq'+i+'">'+q+'</b><button onclick="chg('+i+',1)">+</button></div></div>':'')+'</div>'});
   document.getElementById("g").innerHTML=h;upd();f()}
 function f(){var q=document.getElementById("q").value.toLowerCase(),s=document.getElementById("st").value;
