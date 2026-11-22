@@ -27,7 +27,7 @@ footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}f
 <div id="res" class="hint" style="color:#f2f3f5;font-size:14px;margin-top:10px"></div><button class="go" id="gobtn" onclick="sendOrder()">Place order</button><button class="x" onclick="closeOrder()">Keep shopping</button>
 <div class="hint">Your order goes to the seller for approval. No payment is taken here; the seller will contact you on WhatsApp. Your name and number cannot be changed after your first order.</div></div></div>
 <script>
-var D=null,CART={},HELD={},REFS=[],timer=null,SHOW=false;
+var D=null,CART={},HELD={},STAGE={},REFS=[],timer=null,SHOW=false;
 var REPO="norindamsyar/optcgbn-share",API="https://optcgbn-orders.optcgbn.workers.dev",LINK="https://norindamsyar.github.io/optcgbn-share/approve.html?o=";
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function av(c){return Math.max(0,c.q-(HELD[c.id]||0))}
@@ -97,7 +97,7 @@ function refresh(){var el=document.getElementById("refs"),mo=document.getElement
        h+='<div class="rf">'+t+'</div>'});
      var act2=a.filter(function(o){return["pending","approved","paid"].indexOf(o.status)>-1}).length;mo.textContent="My orders"+(act2?" ("+act2+" active)":"")+(SHOW?" \u25B2":" \u25BC");el.style.display=SHOW?"block":"none";el.innerHTML=h;
      clearTimeout(timer);if(live)timer=setTimeout(function(){loadHolds();refresh()},30000)})}
-function loadHolds(){return fetch(API+"/holds").then(function(r){return r.json()}).then(function(j){HELD=j.held||{};if(D)draw()}).catch(function(){})}
+function loadHolds(){return fetch(API+"/holds").then(function(r){return r.json()}).then(function(j){HELD=j.held||{};STAGE=j.stage||{};if(D)draw()}).catch(function(){})}
 function load(){
   return fetch("https://api.github.com/repos/"+REPO+"/contents/inventory.json",{headers:{"Accept":"application/vnd.github.raw"}})
    .then(function(r){if(!r.ok)throw 0;return r.json()})
@@ -129,11 +129,11 @@ function draw(){var d=D,cards=d.cards||[],h="";
     h+='<div class="c'+(a===0?' sold':'')+'" data-s="'+esc(c.s)+'" data-t="'+esc((c.c+" "+c.n+" "+(c.e||"")).toLowerCase())+'">'+
       (c.i?'<img loading="lazy" referrerpolicy="no-referrer" src="'+esc(c.i)+'" alt="">':'')+
       '<span class="q">'+(a>0?'x'+a:'Booked')+'</span><div class="m"><span class="code">'+esc(c.c)+'</span><span class="r">'+esc(c.r)+'</span><div class="n">'+esc(nm)+'</div>'+(p?'<div class="p">'+esc(p)+'</div>':'')+'</div>'+
-      (held?'<div class="bk">'+held+' booked, pending approval or payment</div>':'')+
+      (held?'<div class="bk">'+'Another user is buying: '+(STAGE[c.id]==='payment'?'pending payment':'pending approval')+'</div>':'')+
       (d.wa&&a>0?'<div class="ctl on"><button class="ad" data-k="'+i+'" style="display:'+(q?'none':'block')+'" onclick="chg('+i+',1)">Add to order</button><div class="st" id="st'+i+'" style="display:'+(q?'flex':'none')+'"><button onclick="chg('+i+',-1)">\u2212</button><b id="sq'+i+'">'+q+'</b><button onclick="chg('+i+',1)">+</button></div></div>':'')+'</div>'});
   document.getElementById("g").innerHTML=h;upd();f()}
 function f(){var q=document.getElementById("q").value.toLowerCase(),s=document.getElementById("st").value;
   document.querySelectorAll(".c").forEach(function(e){e.style.display=(e.dataset.t.indexOf(q)>-1&&(!s||e.dataset.s==s))?"":"none"})}
 REFS=loadRefs();
-Promise.all([load(),fetch(API+"/holds").then(function(r){return r.json()}).catch(function(){return{held:{}}})]).then(function(a){HELD=a[1].held||{};render(a[0])}).catch(function(){document.getElementById("t").textContent="Inventory unavailable";document.getElementById("msg").textContent="Could not load the inventory. Try again later."});
+Promise.all([load(),fetch(API+"/holds").then(function(r){return r.json()}).catch(function(){return{held:{}}})]).then(function(a){HELD=a[1].held||{};STAGE=a[1].stage||{};render(a[0])}).catch(function(){document.getElementById("t").textContent="Inventory unavailable";document.getElementById("msg").textContent="Could not load the inventory. Try again later."});
 </script></body></html>
