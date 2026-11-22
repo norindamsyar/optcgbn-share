@@ -18,16 +18,16 @@ footer,#msg{color:#8e95a3;font-size:12px;text-align:center;padding:0 16px 30px}f
 .sh input{width:100%;box-sizing:border-box;background:#0e1013;color:#f2f3f5;border:1px solid #2a2f39;border-radius:10px;padding:10px;margin:6px 0;font-size:14px}
 .ln{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2a2f39;font-size:13px;gap:8px}.sh .go{width:100%;margin-top:10px}.sh .x{background:#252a33;color:#f2f3f5;border:0;border-radius:10px;padding:10px;width:100%;margin-top:8px}
 .qc{display:inline-flex;align-items:center;gap:4px}.qc button{background:#252a33;color:#f2f3f5;border:0;border-radius:6px;width:28px;height:28px;font-size:16px}.qc .rm{color:#ff5a5f;margin-left:4px}.ln .pr{min-width:64px;text-align:right}.rf{padding:8px 0;border-bottom:1px solid #2a2f39;font-size:14px}.rf:last-child{border:0}.rf button{background:#252a33;color:#f2f3f5;border:0;border-radius:8px;padding:8px 12px;margin:6px 6px 0 0;font-weight:600}.rf button.pay{background:#e8b84a;color:#000}.bk{color:#e8b84a;font-size:11px;padding:0 10px 6px}.sold{opacity:.6}.hint{color:#8e95a3;font-size:12px;margin-top:8px}.wa{display:inline-block;margin-top:8px;background:#25d366;color:#000;font-weight:700;padding:10px 14px;border-radius:10px;text-decoration:none}
-</style></head><body><header><h1 id="t">Loading...</h1><div class="sub" id="s"></div><div class="note" id="nt" style="display:none"></div></header>
+</style></head><body><header><h1 id="t">Loading...</h1><div class="sub" id="s"></div><button id="mo" style="display:none;margin-top:10px;background:#e8b84a;color:#000;border:0;border-radius:10px;padding:9px 14px;font-weight:700;font-size:14px" onclick="toggleRefs()">My orders</button><div class="note" id="nt" style="display:none"></div></header>
 <div id="refs" class="note" style="display:none;margin:0 16px"></div><div class="bar"><input id="q" placeholder="Search code or name" oninput="f()"><select id="st" onchange="f()"><option value="">All sets</option></select></div>
 <div id="msg"></div><div class="grid" id="g"></div><footer id="ft"></footer>
 <div id="cb"><span id="ct"></span><button onclick="openOrder()">View my cart</button></div>
 <div class="ov" id="ov"><div class="sh"><h2 style="margin:0 0 8px">My cart</h2><div id="ol"></div><div id="otot" style="margin:10px 0;font-weight:600"></div>
 <input id="bn" placeholder="Your name (required)"><input id="bp" type="tel" inputmode="tel" placeholder="Your WhatsApp number (required) e.g. 6738123456"><input id="bnote" placeholder="Note (optional)">
 <div id="res" class="hint" style="color:#f2f3f5;font-size:14px;margin-top:10px"></div><button class="go" id="gobtn" onclick="sendOrder()">Place order</button><button class="x" onclick="closeOrder()">Keep shopping</button>
-<div class="hint">Your order goes to the seller for approval. No payment is taken here; the seller will contact you on WhatsApp.</div></div></div>
+<div class="hint">Your order goes to the seller for approval. No payment is taken here; the seller will contact you on WhatsApp. Your name and number cannot be changed after your first order.</div></div></div>
 <script>
-var D=null,CART={},HELD={},REFS=[],timer=null;
+var D=null,CART={},HELD={},REFS=[],timer=null,SHOW=false;
 var REPO="norindamsyar/optcgbn-share",API="https://optcgbn-orders.optcgbn.workers.dev",LINK="https://norindamsyar.github.io/optcgbn-share/approve.html?o=";
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function av(c){return Math.max(0,c.q-(HELD[c.id]||0))}
@@ -40,12 +40,13 @@ function upd(){var x=tot(),b=document.getElementById("cb");b.style.display=x.n?"
   document.getElementById("ct").textContent=x.n+" card"+(x.n>1?"s":"")+(D.rate?" \u00b7 "+money(x.t):"")}
 function lines(){var o=[];for(var k in CART){o.push({c:D.cards[k],q:CART[k]})}return o}
 function cl(k,d){chg(k,d);if(!tot().n){closeOrder()}else openOrder()}
+function lockd(){var l=localStorage.getItem("locked")==="1";document.getElementById("bn").readOnly=l;document.getElementById("bp").readOnly=l;["bn","bp"].forEach(function(i){document.getElementById(i).style.opacity=l?".7":"1"})}
 function openOrder(){var h="";for(var k in CART){var c=D.cards[k],q=CART[k];
     h+='<div class="ln"><span style="flex:1">'+esc(c.c)+" "+esc(c.r)+" "+esc(c.e||c.n)+'</span><span class="qc"><button onclick="cl('+k+',-1)">\u2212</button><b>'+q+'</b><button onclick="cl('+k+',1)">+</button><button class="rm" onclick="cl('+k+',-999)">\u2715</button></span><span class="pr">'+(D.rate&&c.p?money(c.p*q):"")+'</span></div>'}
   document.getElementById("ol").innerHTML=h;var x=tot();document.getElementById("otot").textContent=D.rate?x.n+" cards, total (reference): "+money(x.t):x.n+" cards";
   var bn=document.getElementById("bn"),bp=document.getElementById("bp");if(!bn.value)bn.value=localStorage.getItem("bn")||"";if(!bp.value)bp.value=localStorage.getItem("bp")||"";
-  document.getElementById("ov").classList.add("on")}
-function closeOrder(){document.getElementById("ov").classList.remove("on");document.getElementById("res").textContent="";var g=document.querySelector(".sh .go");if(g)g.style.display=""}
+  lockd();document.getElementById("ov").classList.add("on")}
+function closeOrder(){["bn","bp","bnote"].forEach(function(i){document.getElementById(i).style.display=""});document.getElementById("ov").classList.remove("on");document.getElementById("res").textContent="";var g=document.querySelector(".sh .go");if(g)g.style.display=""}
 function waText(id,who,note,kind){var x=tot();
   var m="*"+(kind==="paid"?"Payment made for order ":"New order ")+id+"* - "+(D.name||"OPTCG.BN")+"\nFrom: "+who+"\n";
   if(kind!=="paid"){m+="\n";lines().forEach(function(l){m+="- "+l.c.c+" "+l.c.r+" "+(l.c.e||l.c.n)+" x"+l.q+(D.rate&&l.c.p?" ("+money(l.c.p*l.q)+")":"")+"\n"});
@@ -68,7 +69,9 @@ function sendOrder(){var nm=document.getElementById("bn").value.trim(),ph=docume
    .then(function(o){go.disabled=false;
      if(o.s===200){var wl=waText(o.j.id,nm+" (+"+ph+")",note,"n");REFS.unshift({id:o.j.id,key:o.j.key});saveRefs();
        CART={};document.querySelectorAll(".ad").forEach(function(b){b.style.display=""});document.querySelectorAll(".st").forEach(function(b){if(b.id!=="st")b.style.display="none"});upd();
-       res.innerHTML='<b>Order placed. Ref '+esc(o.j.id)+'</b><br>The seller will review it. Your cards are booked for you while it is reviewed. You will see the next step (payment) on this page. Tap below to also notify the seller now.<br><a class="wa" target="_blank" href="'+wl+'">Notify on WhatsApp</a>';
+       localStorage.setItem("locked","1");SHOW=true;["bn","bp","bnote"].forEach(function(x){document.getElementById(x).style.display="none"});
+       res.innerHTML='<b>Order placed. Ref '+esc(o.j.id)+'</b><br>Your cards are booked while the seller reviews it. Opening WhatsApp to notify the seller: just tap Send. Check progress anytime under <b>My orders</b>.<br><a class="wa" target="_blank" href="'+wl+'">Open WhatsApp again</a>';
+       setTimeout(function(){location.href=wl},1500);
        document.getElementById("ol").innerHTML="";document.getElementById("otot").textContent="";document.querySelector(".sh .go").style.display="none";refresh()}
      else if(o.s===409||o.s===400||o.s===429){res.textContent=(o.j&&o.j.error)||"Could not place the order.";if(o.s===409)loadHolds()}
      else fallback("Could not reach the seller's order system.")})
@@ -81,7 +84,8 @@ function act(id,what){var r=REFS.filter(function(x){return x.id===id})[0];if(!r|
   fetch(API+"/order/"+id+"/"+what,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key:r.key})})
    .then(function(x){return x.json().then(function(j){return{s:x.status,j:j}})})
    .then(function(o){if(o.s!==200)alert(o.j.error||"Failed");loadHolds();refresh()}).catch(function(){alert("Network error")})}
-function refresh(){var el=document.getElementById("refs");if(!REFS.length){el.style.display="none";return}
+function toggleRefs(){SHOW=!SHOW;refresh();if(SHOW)document.getElementById("refs").scrollIntoView({behavior:"smooth"})}
+function refresh(){var el=document.getElementById("refs"),mo=document.getElementById("mo");if(!REFS.length){el.style.display="none";mo.style.display="none";return}mo.style.display="inline-block";
   Promise.all(REFS.slice(0,5).map(function(r){return fetch(API+"/status/"+r.id).then(function(x){return x.ok?x.json():{id:r.id,status:"expired"}}).catch(function(){return{id:r.id,status:"unknown"}})}))
    .then(function(a){var h="",live=false;
      a.forEach(function(o,i){var r=REFS[i],s=o.status,t="";
@@ -91,7 +95,7 @@ function refresh(){var el=document.getElementById("refs");if(!REFS.length){el.st
        else if(s==="completed")t="Order <b>"+esc(o.id)+"</b> is complete. Thank you!";
        else t="Order <b>"+esc(o.id)+"</b>: "+esc(s)+".";
        h+='<div class="rf">'+t+'</div>'});
-     el.style.display="block";el.innerHTML=h;
+     var act2=a.filter(function(o){return["pending","approved","paid"].indexOf(o.status)>-1}).length;mo.textContent="My orders"+(act2?" ("+act2+" active)":"")+(SHOW?" \u25B2":" \u25BC");el.style.display=SHOW?"block":"none";el.innerHTML=h;
      clearTimeout(timer);if(live)timer=setTimeout(function(){loadHolds();refresh()},30000)})}
 function loadHolds(){return fetch(API+"/holds").then(function(r){return r.json()}).then(function(j){HELD=j.held||{};if(D)draw()}).catch(function(){})}
 function load(){
